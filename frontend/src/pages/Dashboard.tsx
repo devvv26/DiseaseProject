@@ -1,3 +1,4 @@
+import React from 'react';
 function Dashboard() {
   return <h1>Welcome to the Diabetes Risk Dashboard</h1>;
 }

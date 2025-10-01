@@ -1,3 +1,4 @@
+import React from 'react';
 function AssessmentPage() {
   return <h1>Welcome to the Diabetes Risk Assessment</h1>;
 }

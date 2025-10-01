@@ -1,10 +1,11 @@
 // frontend/src/App.tsx
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import AssessmentPage from './pages/AssessmentPage';
-import ResultsPage from './pages/ResultsPage';
+import ResultsPage from './pages/ResultPage';
 import DietPlanPage from './pages/DietPlanPage';
 
 function App() {

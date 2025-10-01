@@ -1,3 +1,4 @@
+import React from 'react';
 function DietPlanPage() {
   return <h1>Welcome to the Diabetes Risk Diet Plan</h1>;
 }
