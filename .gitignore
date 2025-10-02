@@ -1,6 +1,0 @@
-# frontend dependencies
-/frontend/node_modules
-
-# backend dependencies
-/backend/.venv/
-/backend/__pycache__/git push -u origin master

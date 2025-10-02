@@ -1,23 +1,28 @@
-// frontend/src/App.tsx
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { Container } from '@mui/material';
+
+// Component Imports
+import Header from './components/Header';
+
+// Page Imports
 import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
 import AssessmentPage from './pages/AssessmentPage';
-import ResultsPage from './pages/ResultPage';
-import DietPlanPage from './pages/DietPlanPage';
+import ResultPage from './pages/ResultPage';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/assessment" element={<AssessmentPage />} />
-      <Route path="/results" element={<ResultsPage />} />
-      <Route path="/diet-plan" element={<DietPlanPage />} />
-    </Routes>
+    <div>
+      <Header />
+      <main>
+        <Container sx={{ mt: 4 }}> {/* Adds a 32px top margin */}
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/assessment" element={<AssessmentPage />} />
+            <Route path="/results" element={<ResultPage />} />
+          </Routes>
+        </Container>
+      </main>
+    </div>
   );
 }
 
