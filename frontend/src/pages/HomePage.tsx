@@ -1,42 +1,50 @@
-import { Box, Button, Container, Typography } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Container, Grid, Typography, Button, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import heroIllustration from '../assets/health_illustration.svg'; // Using the new SVG
 
 const HomePage = () => {
-  return (
-    <Container maxWidth="md">
-      <Box
-        sx={{
-          minHeight: '70vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-        }}
-      >
-        <Typography 
-          variant="h2" 
-          component="h1" 
-          gutterBottom
-          sx={{ fontWeight: 'bold' }}
-        >
-          Understand Your Diabetes Risk in Minutes
-        </Typography>
+  const navigate = useNavigate();
 
-        <Typography variant="h5" component="p" color="text.secondary" sx={{ mb: 4 }}>
-          Our AI-powered tool provides a quick, confidential risk assessment and helps you take the next steps toward a healthier future.
-        </Typography>
-        
-        <Button
-          variant="contained"
-          size="large"
-          component={Link}
-          to="/assessment"
-        >
-          Start Your Risk Assessment
-        </Button>
-      </Box>
-    </Container>
+  return (
+    <Box sx={{ bgcolor: '#E8F5E9', py: 5, px: 3 }}> {/* Adjusted padding and removed border radius */}
+      <Container maxWidth="lg">
+        <Grid container spacing={4} alignItems="center">
+          {/* Left Side: Text Content */}
+          <Grid item xs={12} md={6}>
+            <Typography variant="h2" component="h1" gutterBottom>
+              Take control of your health journey.
+            </Typography>
+            <Typography variant="h5" paragraph>
+              Our quick and confidential assessment helps you understand your potential risk for diabetes and provides personalized insights.
+            </Typography>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              size="large"
+              onClick={() => navigate('/assessment')}
+              sx={{ mt: 2 }}
+            >
+              Start Your Assessment
+            </Button>
+          </Grid>
+
+          {/* Right Side: Illustration */}
+          <Grid item xs={12} md={6}>
+            <Box
+              component="img"
+              src={heroIllustration}
+              alt="A person managing their health with digital tools"
+              sx={{
+                width: '100%',
+                maxWidth: '450px',
+                display: 'block',
+                mx: 'auto'
+              }}
+            />
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 

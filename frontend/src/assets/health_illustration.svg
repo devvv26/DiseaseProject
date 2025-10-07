@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#66BB6A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, 0)">
+    <!-- Person -->
+    <path d="M256 224c-35.3 0-64 28.7-64 64v96h128v-96c0-35.3-28.7-64-64-64z" fill="#AED581"/>
+    <path d="M256 128c-35.3 0-64 28.7-64 64s28.7 64 64 64 64-28.7 64-64-28.7-64-64-64z" fill="#424242"/>
+    <path d="M256 128c-20 0-35 15-35 35s15 35 35 35" fill="#616161"/>
+    <path d="M192 288v96h128v-96z" fill="#66BB6A"/>
+    
+    <!-- Health Icons -->
+    <!-- Heart -->
+    <path d="M128 192l-16-16c-24-24-64-24-88 0s-24 64 0 88l104 104 104-104c24-24 24-64 0-88s-64-24-88 0l-16 16z" fill="#FF7043"/>
+    <path d="M128 212l-20-20" stroke="#FFF" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Shield -->
+    <path d="M400 160c0-48-32-80-80-80s-80 32-80 80v64c0 48 32 80 80 80s80-32 80-80v-64z" fill="#42A5F5"/>
+    <path d="M360 200l-40 40-20-20" stroke="#FFF" stroke-width="12" stroke-linecap="round" fill="none"/>
+
+    <!-- Chart -->
+    <path d="M120 400h272v16H120z" fill="#BDBDBD"/>
+    <rect x="140" y="340" width="40" height="60" fill="#FFA726"/>
+    <rect x="200" y="360" width="40" height="40" fill="#66BB6A"/>
+    <rect x="260" y="320" width="40" height="80" fill="#42A5F5"/>
+    <rect x="320" y="350" width="40" height="50" fill="#FF7043"/>
+  </g>
+</svg>
