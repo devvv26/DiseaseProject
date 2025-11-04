@@ -6,14 +6,14 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-print("--- Starting Final Model Training (Targeted Features) ---")
+print("--- Starting Multi-Class Model Training (Frontend Features Only) ---")
 
-# --- 1. Load the Dataset ---
+# --- 1. Load the ORIGINAL Dataset ---
 try:
-    df = pd.read_csv('../data/diabetes_training_data.csv')
-    print("Dataset loaded successfully.")
+    df = pd.read_csv('../data/diabetes_012_health_indicators_BRFSS2015.csv')
+    print("Original dataset loaded successfully.")
 except FileNotFoundError:
-    print("Error: 'diabetes_training_data.csv' not found in 'backend/data/'.")
+    print("Error: 'diabetes_012_health_indicators_BRFSS2015.csv' not found in 'backend/data/'.")
     exit()
 
 # --- 2. Define EXACT Features Used in the Frontend ---
@@ -24,8 +24,8 @@ features_to_use = [
     'GenHlth', 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age'
 ]
 
-# The target column remains the same
-target_column = 'Diabetes_binary'
+# The target is the multi-class column from the original dataset
+target_column = 'Diabetes_012'
 
 X = df[features_to_use]
 y = df[target_column]
@@ -43,10 +43,10 @@ print(f"Data scaler for {len(features_to_use)} features saved to '{scaler_filena
 X_scaled = scaler.transform(X)
 
 # --- 4. Train the Final Model ---
-print(f"Training RandomForestClassifier on {len(features_to_use)} features...")
+print(f"Training RandomForestClassifier on {len(features_to_use)} features for 3 classes...")
 final_model = RandomForestClassifier(random_state=42)
 final_model.fit(X_scaled, y)
-print("Model training complete.")
+print("Multi-class model training complete.")
 
 # --- 5. Save the Final Model ---
 model_filename = "../diabetes_model.pkl"

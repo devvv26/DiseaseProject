@@ -19,7 +19,8 @@ import Warning from '@mui/icons-material/Warning';
 
 // A component to display the circular progress with a label in the middle
 function CircularProgressWithLabel(props: CircularProgressProps & { value: number }) {
-  const scoreColor = props.value > 50 ? 'error' : 'success';
+  // FIX: Add 'warning' color for mid-range risk to match the text color
+  const scoreColor = props.value > 50 ? 'error' : (props.value > 25 ? 'warning' : 'success');
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex' }}>
       <CircularProgress variant="determinate" {...props} size={150} thickness={4} color={scoreColor} />
@@ -43,9 +44,19 @@ function CircularProgressWithLabel(props: CircularProgressProps & { value: numbe
   );
 }
 
+// Define a type for the state passed from the previous page for better type safety
+interface LocationState {
+  result: {
+    prediction: number;
+    confidence: number;
+    factors: string[]; // Add factors array from the backend
+  };
+}
+
 const ResultPage = () => {
   const location = useLocation();
-  const result = location.state?.result;
+  // Safely access the result with the defined type
+  const result = (location.state as LocationState)?.result;
 
   if (!result) {
     return (
@@ -55,10 +66,20 @@ const ResultPage = () => {
     );
   }
 
-  const predictionText = result.prediction === 1 ? 'High Risk of Diabetes' : 'Low Risk of Diabetes';
-  // FIX: Use 'result.confidence' which is sent from the backend, not 'risk_probability'.
+  // NEW: Handle the 3 prediction classes from the new model
+  const getPredictionText = (prediction: number) => {
+    if (prediction === 2) {
+      return 'High Risk of Diabetes';
+    }
+    if (prediction === 1) {
+      return 'Potential Risk of Prediabetes';
+    }
+    return 'Low Risk of Diabetes';
+  };
+
+  const predictionText = getPredictionText(result.prediction);
   const riskPercentage = result.confidence || 0;
-  const scoreColor = riskPercentage > 50 ? 'error.main' : 'success.main';
+  const scoreTextColor = riskPercentage > 50 ? 'error.main' : (riskPercentage > 25 ? 'warning.main' : 'success.main');
 
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
@@ -70,7 +91,7 @@ const ResultPage = () => {
               Your Result
             </Typography>
             <CircularProgressWithLabel value={riskPercentage} />
-            <Typography variant="h5" component="p" sx={{ mt: 2, color: scoreColor, fontWeight: 'bold' }}>
+            <Typography variant="h5" component="p" sx={{ mt: 2, color: scoreTextColor, fontWeight: 'bold' }}>
               {predictionText}
             </Typography>
           </Grid>
@@ -80,9 +101,21 @@ const ResultPage = () => {
             <Typography variant="h6" component="h3" sx={{ mb: 2 }}>
               Key Factors in Your Result
             </Typography>
+            {/* NEW: Dynamically display risk factors from the backend */}
             <List dense>
-              <ListItem><ListItemIcon><Warning color="warning"/></ListItemIcon><ListItemText primary="Body Mass Index (BMI) was a significant factor." /></ListItem>
-              <ListItem><ListItemIcon><Warning color="warning"/></ListItemIcon><ListItemText primary="Age was a significant factor." /></ListItem>
+              {result.factors && result.factors.length > 0 ? (
+                result.factors.map((factor, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon><Warning color="warning" /></ListItemIcon>
+                    <ListItemText primary={`${factor} was a significant factor.`} />
+                  </ListItem>
+                ))
+              ) : (
+                <ListItem>
+                  <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                  <ListItemText primary="No significant risk factors identified." />
+                </ListItem>
+              )}
             </List>
             
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>

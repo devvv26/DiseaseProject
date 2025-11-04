@@ -24,14 +24,14 @@ app.add_middleware(
 try:
     model = joblib.load("diabetes_model.pkl")
     scaler = joblib.load("scaler.pkl")
-    print("Model and scaler re-loaded successfully.")
+    print("Multi-class model (Frontend Features) and scaler loaded successfully.")
 except FileNotFoundError:
     print("Error: Model or scaler files not found.")
     model = None
     scaler = None
 
 # --- 4. Define the Input Data Model ---
-# This Pydantic model now contains ONLY the features used in the form.
+# This Pydantic model now contains ONLY the features used in the frontend form.
 class DiabetesFeatures(BaseModel):
     HighBP: float
     HighChol: float
@@ -57,33 +57,34 @@ def predict_diabetes(features: DiabetesFeatures):
         return {"error": "Model not loaded. Please check server logs."}
 
     try:
-        # The input array now perfectly matches the training data.
-        # We explicitly cast values to floats to ensure correct data types.
-        input_data = np.array([[
-            float(features.HighBP), float(features.HighChol), float(features.BMI), float(features.Stroke),
-            float(features.HeartDiseaseorAttack), float(features.PhysActivity), float(features.Fruits),
-            float(features.Veggies), float(features.AnyHealthcare), float(features.NoDocbcCost),
-            float(features.GenHlth), float(features.MentHlth), float(features.PhysHlth),
-            float(features.DiffWalk), float(features.Sex), float(features.Age)
-        ]])
+        # The input array now perfectly matches the training data (16 features).
+        input_data = np.array([
+            [
+                features.HighBP, features.HighChol, features.BMI, features.Stroke,
+                features.HeartDiseaseorAttack, features.PhysActivity, features.Fruits,
+                features.Veggies, features.AnyHealthcare, features.NoDocbcCost,
+                features.GenHlth, features.MentHlth, features.PhysHlth,
+                features.DiffWalk, features.Sex, features.Age
+            ]
+        ])
 
-        # Scale the input data using the loaded scaler
         input_data_scaled = scaler.transform(input_data)
-
-        # Make a prediction
         prediction_raw = model.predict(input_data_scaled)
         prediction_proba = model.predict_proba(input_data_scaled)
 
-        # Determine the result
-        # The model outputs 0 (No Diabetes) or 1 (Diabetes).
-        # We want the probability of having diabetes, which is the probability of class 1.
+        # Interpret the multi-class prediction
         prediction = int(prediction_raw[0])
-        risk_percentage = float(prediction_proba[0][1]) # Always get probability of class 1
+        
+        # Calculate a more nuanced risk score
+        # (Probability of Prediabetes * 50) + (Probability of Diabetes * 100)
+        prediabetes_proba = prediction_proba[0][1]
+        diabetes_proba = prediction_proba[0][2]
+        risk_score = (prediabetes_proba * 50) + (diabetes_proba * 100)
 
-        # Return the result in a JSON format
         return {
-            "prediction": prediction,
-            "confidence": round(risk_percentage * 100, 2)
+            "prediction": prediction, # Will be 0, 1, or 2
+            "confidence": round(risk_score, 2),
+            # We can add more details later if needed
         }
     except Exception as e:
         return {"error": f"An error occurred during prediction: {str(e)}"}
@@ -91,4 +92,4 @@ def predict_diabetes(features: DiabetesFeatures):
 # --- 6. Root Endpoint for Testing ---
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Diabetes Prediction API"}
+    return {"message": "Welcome to the Diabetes Prediction API (Multi-Class)"}
