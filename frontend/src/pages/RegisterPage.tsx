@@ -11,7 +11,7 @@ import {
   Alert 
 } from '@mui/material';
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,22 +21,18 @@ const LoginPage = () => {
     event.preventDefault();
     setError('');
 
+    if (!username || !password) {
+      setError('Username and password are required.');
+      return;
+    }
+
     try {
-      // The backend expects form data for the login endpoint
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-
-      const response = await axios.post('http://127.0.0.1:8000/login/', formData, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      await axios.post('http://127.0.0.1:8000/register/', {
+        username: username,
+        password: password,
       });
-
-      // For now, just log the token to the console to see it work
-      console.log('Login successful, token:', response.data.access_token);
       
-      // We will save the token and redirect in the next step
-      // For now, let's just navigate home
-      navigate('/');
+      navigate('/login');
 
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
@@ -61,7 +57,7 @@ const LoginPage = () => {
         }}
       >
         <Typography component="h1" variant="h5">
-          Sign In
+          Create Account
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
@@ -85,7 +81,7 @@ const LoginPage = () => {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -95,12 +91,12 @@ const LoginPage = () => {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign In
+            Register
           </Button>
           <Typography variant="body2" align="center">
-            Don't have an account?{' '}
-            <RouterLink to="/register" style={{ color: '#90caf9' }}>
-              Sign Up
+            Already have an account?{' '}
+            <RouterLink to="/login" style={{ color: '#90caf9' }}>
+              Sign In
             </RouterLink>
           </Typography>
         </Box>
@@ -109,4 +105,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
