@@ -20,7 +20,7 @@ function App() {
       <Router>
         <Toaster position="top-center" reverseOrder={false} />
         <Layout />
-        <main style={{ paddingTop: "80px" }}>
+        <main style={{ paddingTop: "0px" }}>
           {/* The <Router> from main.tsx wraps everything, so we remove it from here */}
           <Routes>
             {/* Public Routes */}

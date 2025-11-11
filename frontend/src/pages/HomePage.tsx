@@ -61,7 +61,7 @@ const HomePage: React.FC = () => {
       </Box>
 
       {/* --- "Are you at risk?" Section (Updated) --- */}
-      <Box sx={{ bgcolor: '#263238', color: 'white', py: { xs: 8, md: 10 } }}>
+      {/* <Box sx={{ bgcolor: '#263238', color: 'white', py: { xs: 8, md: 10 } }}>
         <Container maxWidth="lg">
           <motion.div
             variants={sectionVariants}
@@ -81,15 +81,15 @@ const HomePage: React.FC = () => {
                 gap: 4,
               }}
             >
-              <Box>
+              {/* <Box>
                 <Typography variant="h4" component="h2" fontWeight="600">
                   Are you at risk?
                 </Typography>
                 <Typography sx={{ mt: 1, maxWidth: '600px' }}>
                   Understanding your personal risk is the key to proactive health. Our quick assessment helps identify your risk for Type 2 diabetes and provides the first step on your wellness journey.
                 </Typography>
-              </Box>
-              <Box sx={{ flexShrink: 0 }}>
+              </Box> */}
+              {/* <Box sx={{ flexShrink: 0 }}>
                 <Button
                   variant="outlined"
                   color="inherit"
@@ -101,7 +101,7 @@ const HomePage: React.FC = () => {
             </Paper>
           </motion.div>
         </Container>
-      </Box>
+      </Box> */} 
 
       {/* --- NEW: Food & Diet Plan Section --- */}
       <Box sx={{ bgcolor: 'background.paper', py: { xs: 8, md: 12 } }}>
