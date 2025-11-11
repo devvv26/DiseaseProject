@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Stepper, Step, StepLabel, Button, Typography, Box, Container,
   TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio,
-  Select, MenuItem, InputLabel, CircularProgress
+  Select, MenuItem, InputLabel, CircularProgress, Alert
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,30 +21,32 @@ const steps = [
 const AssessmentPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    // Fields for the model
     HighBP: '',
     HighChol: '',
-    height: '',
-    weight: '',
     BMI: '',
-    Stroke: '',
-    HeartDiseaseorAttack: '',
+    GenHlth: '3', // Default to 'Good'
+    Age: '',
     PhysActivity: '',
     Fruits: '',
     Veggies: '',
+    Sex: '',
+    // Helper fields for the form
+    height: '',
+    weight: '',
+    Stroke: '',
+    HeartDiseaseorAttack: '',
     AnyHealthcare: '',
     NoDocbcCost: '',
-    GenHlth: '3',
     MentHlth: '',
     PhysHlth: '',
     DiffWalk: '',
-    Sex: '',
-    Age: '',
   });
 
-  // --- Real-time BMI Calculation ---
   useEffect(() => {
     const weightInKg = parseFloat(formData.weight);
     const heightInM = parseFloat(formData.height) / 100;
@@ -55,7 +57,6 @@ const AssessmentPage = () => {
       setFormData(prevData => ({ ...prevData, BMI: '' }));
     }
   }, [formData.height, formData.weight]);
-
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | { name?: string; value: unknown }> | SelectChangeEvent<string>) => {
     const { name, value } = event.target;
@@ -68,29 +69,49 @@ const AssessmentPage = () => {
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
       setIsLoading(true);
+      setError(null);
       
       try {
-        // Prepare payload for the backend (removes height/weight, keeps BMI)
-        const { height, weight, ...payload } = formData;
+        // *** THE FIX IS HERE ***
+        // 1. Create a payload with ONLY the fields the model needs.
+        // 2. Convert all values to numbers as expected by the backend.
+        const payload = {
+          HighBP: parseInt(formData.HighBP, 10),
+          HighChol: parseInt(formData.HighChol, 10),
+          BMI: parseFloat(formData.BMI),
+          GenHlth: parseInt(formData.GenHlth, 10),
+          Age: parseInt(formData.Age, 10),
+          PhysActivity: parseInt(formData.PhysActivity, 10),
+          Fruits: parseInt(formData.Fruits, 10),
+          Veggies: parseInt(formData.Veggies, 10),
+          Sex: parseInt(formData.Sex, 10),
+        };
+
+        // Simple validation
+        for (const [key, value] of Object.entries(payload)) {
+          if (isNaN(value)) {
+            throw new Error(`Please answer all questions. The value for '${key}' is missing.`);
+          }
+        }
 
         const response = await fetch('http://localhost:8000/predict', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json();
+          throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
-        navigate('/results', { state: { result: result } });
+        // Navigate to the results page with the prediction
+        navigate('/results', { state: { prediction: result.prediction } });
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error submitting assessment:', error);
-        alert('Failed to get prediction. Please try again.');
+        setError(error.message || 'Failed to get prediction. Please check your answers and try again.');
       } finally {
         setIsLoading(false);
       }
@@ -105,7 +126,6 @@ const AssessmentPage = () => {
   };
   
   function getStepContent(step: number) {
-    // A helper function to apply consistent styling to form labels
     const StyledFormLabel = (props: { children: React.ReactNode }) => (
       <FormLabel component="legend" sx={{ mb: 1, fontWeight: '500', color: 'text.primary' }}>
         {props.children}
@@ -149,44 +169,6 @@ const AssessmentPage = () => {
                 <FormControlLabel value="1" control={<Radio />} label="Male" />
               </RadioGroup>
             </FormControl>
-            {/* <FormControl fullWidth margin="normal">
-              <InputLabel id="education-label">Highest Level of Education Completed</InputLabel>
-              <Select 
-                labelId="education-label" 
-                name="Education" 
-                value={formData.Education} 
-                label="Highest Level of Education Completed" 
-                onChange={handleChange}
-                required
-              >
-                <MenuItem value="1">Never attended school or only kindergarten</MenuItem>
-                <MenuItem value="2">Grades 1 through 8 (Elementary)</MenuItem>
-                <MenuItem value="3">Grades 9 through 11 (Some high school)</MenuItem>
-                <MenuItem value="4">Grade 12 or GED (High school graduate)</MenuItem>
-                <MenuItem value="5">College 1 year to 3 years (Some college)</MenuItem>
-                <MenuItem value="6">College 4 years or more (College graduate)</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="income-label">Annual Income</InputLabel>
-              <Select 
-                labelId="income-label" 
-                name="Income" 
-                value={formData.Income} 
-                label="Annual Income" 
-                onChange={handleChange}
-                required
-              >
-                <MenuItem value="1">Less than $10,000</MenuItem>
-                <MenuItem value="2">$10,000 to $14,999</MenuItem>
-                <MenuItem value="3">$15,000 to $19,999</MenuItem>
-                <MenuItem value="4">$20,000 to $24,999</MenuItem>
-                <MenuItem value="5">$25,000 to $34,999</MenuItem>
-                <MenuItem value="6">$35,000 to $49,999</MenuItem>
-                <MenuItem value="7">$50,000 to $74,999</MenuItem>
-                <MenuItem value="8">$75,000 or more</MenuItem>
-              </Select>
-            </FormControl> */}
           </Box>
         );
       case 2: // New Body Mass Index Step
@@ -243,13 +225,6 @@ const AssessmentPage = () => {
                 <FormControlLabel value="0" control={<Radio />} label="No" />
               </RadioGroup>
             </FormControl>
-            {/* <FormControl fullWidth margin="normal" component="fieldset">
-              <FormLabel component="legend">Have you had a cholesterol check in the past 5 years?</FormLabel>
-              <RadioGroup row name="CholCheck" value={formData.CholCheck} onChange={handleChange}>
-                <FormControlLabel value="1" control={<Radio />} label="Yes" />
-                <FormControlLabel value="0" control={<Radio />} label="No" />
-              </RadioGroup>
-            </FormControl> */}
             <FormControl fullWidth margin="normal" component="fieldset">
               <StyledFormLabel>Have you ever had a stroke?</StyledFormLabel>
               <RadioGroup row name="Stroke" value={formData.Stroke} onChange={handleChange}>
@@ -269,13 +244,6 @@ const AssessmentPage = () => {
       case 4: // Lifestyle & Habits: Smoker, PhysActivity, Fruits, Veggies, HvyAlcoholConsump
         return (
           <Box>
-            {/* <FormControl fullWidth margin="normal" component="fieldset">
-              <FormLabel component="legend">Have you smoked at least 100 cigarettes in your entire life?</FormLabel>
-              <RadioGroup row name="Smoker" value={formData.Smoker} onChange={handleChange}>
-                <FormControlLabel value="1" control={<Radio />} label="Yes" />
-                <FormControlLabel value="0" control={<Radio />} label="No" />
-              </RadioGroup>
-            </FormControl> */}
             <FormControl fullWidth margin="normal" component="fieldset">
               <StyledFormLabel>Have you had physical activity in the past 30 days (not including your job)?</StyledFormLabel>
               <RadioGroup row name="PhysActivity" value={formData.PhysActivity} onChange={handleChange}>
@@ -297,13 +265,6 @@ const AssessmentPage = () => {
                 <FormControlLabel value="0" control={<Radio />} label="No" />
               </RadioGroup>
             </FormControl>
-            {/* <FormControl fullWidth margin="normal" component="fieldset">
-              <FormLabel component="legend">Are you a heavy drinker (adult men having {'>'}14 drinks/week and women {'>'}7 drinks/week)?</FormLabel>
-              <RadioGroup row name="HvyAlcoholConsump" value={formData.HvyAlcoholConsump} onChange={handleChange}>
-                <FormControlLabel value="1" control={<Radio />} label="Yes" />
-                <FormControlLabel value="0" control={<Radio />} label="No" />
-              </RadioGroup>
-            </FormControl> */}
           </Box>
         );
       case 5: // Overall Well-being: GenHlth, MentHlth, PhysHlth, DiffWalk
@@ -383,11 +344,11 @@ const AssessmentPage = () => {
     <Container 
       maxWidth="md" 
       sx={{
+        // The 'py' property has been removed from here.
         flexGrow: 1,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        py: 4
       }}
     >
       <Stepper activeStep={activeStep} sx={{ mb: 4, '& .MuiStep-root': { flex: 1 } }}>
@@ -399,15 +360,17 @@ const AssessmentPage = () => {
       </Stepper>
       
       <Box sx={{ 
-        height: '380px', // A fixed height for all steps
+        height: '380px',
         p: 4, 
         border: '1px solid #F0F0F0', 
         borderRadius: '16px', 
         bgcolor: 'background.paper', 
         boxShadow: '0 8px 24px rgba(0,0,0,0.03)',
         display: 'flex',
-        alignItems: 'center' // Vertically center the content inside the box
+        flexDirection: 'column',
+        justifyContent: 'center'
       }}>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeStep}

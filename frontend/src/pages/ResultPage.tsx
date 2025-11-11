@@ -1,4 +1,5 @@
 import { useLocation, Link as RouterLink } from 'react-router-dom';
+import { useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -16,6 +17,7 @@ import {
 import type { CircularProgressProps } from '@mui/material/CircularProgress';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Warning from '@mui/icons-material/Warning';
+import DietPlanModal from '../components/DietPlanModal'; // NEW: Import the modal
 
 // A component to display the circular progress with a label in the middle
 function CircularProgressWithLabel(props: CircularProgressProps & { value: number }) {
@@ -57,6 +59,32 @@ const ResultPage = () => {
   const location = useLocation();
   // Safely access the result with the defined type
   const result = (location.state as LocationState)?.result;
+
+  // NEW: State for diet plan modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dietPlan, setDietPlan] = useState(null);
+  const [isDietLoading, setIsDietLoading] = useState(false);
+
+  // NEW: Function to fetch diet plan
+  const handleGenerateDietPlan = async () => {
+    setIsModalOpen(true);
+    setIsDietLoading(true);
+    try {
+      // We'll pass the prediction class to the backend to get a tailored plan
+      const response = await fetch(`http://localhost:8000/generate-diet-plan?risk_level=${result.prediction}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch diet plan');
+      }
+      const data = await response.json();
+      setDietPlan(data.diet_plan);
+    } catch (error) {
+      console.error("Error generating diet plan:", error);
+      // You could set an error state here to show in the modal
+    } finally {
+      setIsDietLoading(false);
+    }
+  };
+
 
   if (!result) {
     return (
@@ -131,6 +159,7 @@ const ResultPage = () => {
               color="primary" 
               size="large" 
               sx={{ mt: 3 }}
+              onClick={handleGenerateDietPlan} // NEW: Add onClick handler
             >
               Generate My Diet Plan
             </Button>
@@ -142,6 +171,14 @@ const ResultPage = () => {
           *Disclaimer: This tool provides a risk assessment based on provided data and is not a substitute for a professional medical diagnosis.
         </Typography>
       </Paper>
+
+      {/* NEW: Render the modal */}
+      <DietPlanModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        dietPlan={dietPlan}
+        isLoading={isDietLoading}
+      />
     </Container>
   );
 };

@@ -1,67 +1,62 @@
 import { createTheme } from '@mui/material/styles';
 
-// A premium, clean theme inspired by the MIRA DENTAL website
+// A professional, modern light theme for a health application.
 const theme = createTheme({
   palette: {
+    mode: 'light',
     primary: {
-      main: '#5D7A77', // A muted, sophisticated teal/green
+      main: '#00796b', // A trustworthy, calming teal/green.
+      light: '#48a999',
+      dark: '#004c40',
     },
     secondary: {
-      main: '#BFA58A', // A soft beige accent color
+      main: '#d32f2f', // A strong red for alerts or important secondary actions.
     },
     background: {
-      default: '#FDFCFB', // A very light, warm off-white
-      paper: '#FFFFFF',
+      default: '#f7f9fc', // A very light, clean grey for page backgrounds.
+      paper: '#ffffff',   // Pure white for cards and surfaces.
     },
     text: {
-      primary: '#333333', // A softer black for text
-      secondary: '#555555',
+      primary: '#212121',   // Dark grey for primary text for better readability.
+      secondary: '#757575', // Lighter grey for secondary text.
     },
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    // Use the 'Lora' font for headings to give an elegant feel
-    h4: {
-      fontFamily: '"Lora", "Georgia", serif',
-      fontWeight: 700,
-      color: '#333333',
-    },
-    h5: {
-      fontFamily: '"Lora", "Georgia", serif',
-      fontWeight: 600,
-    },
-    h6: {
-      fontFamily: '"Lora", "Georgia", serif',
-      fontWeight: 600,
-    },
+    h1: { fontWeight: 700 },
+    h2: { fontWeight: 700 },
+    h3: { fontWeight: 600 },
+    h4: { fontWeight: 600 },
+    h5: { fontWeight: 500 },
+    h6: { fontWeight: 500 },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '30px', // Pill-shaped buttons
+          borderRadius: 24, // Softer, more modern pill-shaped buttons.
           textTransform: 'none',
           fontWeight: 600,
           padding: '10px 24px',
-          boxShadow: 'none',
         },
         containedPrimary: {
-          '&:hover': {
-            boxShadow: 'none',
-            backgroundColor: '#4A615F', // A slightly darker shade for hover
-          },
+          color: '#ffffff',
         },
       },
     },
-    MuiStepIcon: {
+    MuiPaper: {
       styleOverrides: {
         root: {
-          '&.Mui-active': {
-            color: '#5D7A77',
-          },
-          '&.Mui-completed': {
-            color: '#5D7A77',
-          },
+          borderRadius: 16, // Consistent rounded corners for all paper elements.
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent white
+          backdropFilter: 'blur(10px)', // Frosted glass effect
+          boxShadow: '0px 1px 3px rgba(0,0,0,0.1)',
         },
       },
     },

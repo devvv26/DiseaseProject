@@ -1,110 +1,60 @@
-import { useState } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  Paper, 
-  Alert 
-} from '@mui/material';
+import { useAuth } from '../context/AuthContext';
+import { Container, Box, Typography, TextField, Button, Link } from '@mui/material';
 
-const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+const LoginPage: React.FC = () => {
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError('');
-
+  const onSubmit = async (data: any) => {
     try {
-      // The backend expects form data for the login endpoint
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-
-      const response = await axios.post('http://127.0.0.1:8000/login/', formData, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      });
-
-      // For now, just log the token to the console to see it work
-      console.log('Login successful, token:', response.data.access_token);
-      
-      // We will save the token and redirect in the next step
-      // For now, let's just navigate home
-      navigate('/');
-
-    } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.detail) {
-        setError(err.response.data.detail);
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
+      await login(data);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Login failed:", error);
     }
   };
 
   return (
     <Container component="main" maxWidth="xs">
-      <Paper 
-        elevation={6} 
-        sx={{ 
-          marginTop: 8, 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          padding: 4,
-          bgcolor: 'rgba(255, 255, 255, 0.05)'
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Sign In
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-          {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
+      <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography component="h1" variant="h5">Sign In</Typography>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"
             required
             fullWidth
             id="username"
             label="Username"
-            name="username"
             autoComplete="username"
             autoFocus
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            {...register("username", { required: "Username is required" })}
+            error={!!errors.username}
+            helperText={errors.username?.message as string}
           />
           <TextField
             margin="normal"
             required
             fullWidth
-            name="password"
             label="Password"
             type="password"
             id="password"
             autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register("password", { required: "Password is required" })}
+            error={!!errors.password}
+            helperText={errors.password?.message as string}
           />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
+          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
             Sign In
           </Button>
-          <Typography variant="body2" align="center">
-            Don't have an account?{' '}
-            <RouterLink to="/register" style={{ color: '#90caf9' }}>
-              Sign Up
-            </RouterLink>
-          </Typography>
+          <Link component={RouterLink} to="/register" variant="body2">
+            {"Don't have an account? Sign Up"}
+          </Link>
         </Box>
-      </Paper>
+      </Box>
     </Container>
   );
 };

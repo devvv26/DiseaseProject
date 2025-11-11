@@ -1,106 +1,71 @@
-import { useState } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  Paper, 
-  Alert 
-} from '@mui/material';
+import { useAuth } from '../context/AuthContext';
+import { Container, Box, Typography, TextField, Button, Link } from '@mui/material';
 
-const RegisterPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+const RegisterPage: React.FC = () => {
+  const { register: signup } = useAuth();
   const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors }, watch } = useForm();
+  const password = watch('password');
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError('');
-
-    if (!username || !password) {
-      setError('Username and password are required.');
-      return;
-    }
-
+  const onSubmit = async (data: any) => {
     try {
-      await axios.post('http://127.0.0.1:8000/register/', {
-        username: username,
-        password: password,
-      });
-      
+      await signup(data);
       navigate('/login');
-
-    } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.detail) {
-        setError(err.response.data.detail);
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
+    } catch (error) {
+      console.error("Registration failed:", error);
     }
   };
 
   return (
     <Container component="main" maxWidth="xs">
-      <Paper 
-        elevation={6} 
-        sx={{ 
-          marginTop: 8, 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          padding: 4,
-          bgcolor: 'rgba(255, 255, 255, 0.05)'
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Create Account
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-          {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
+      <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography component="h1" variant="h5">Sign Up</Typography>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 3 }}>
           <TextField
             margin="normal"
             required
             fullWidth
             id="username"
             label="Username"
-            name="username"
             autoComplete="username"
             autoFocus
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            {...register("username", { required: "Username is required" })}
+            error={!!errors.username}
+            helperText={errors.username?.message as string}
           />
           <TextField
             margin="normal"
             required
             fullWidth
-            name="password"
             label="Password"
             type="password"
             id="password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register("password", { required: "Password is required", minLength: { value: 6, message: "Password must be at least 6 characters" } })}
+            error={!!errors.password}
+            helperText={errors.password?.message as string}
           />
-          <Button
-            type="submit"
+          <TextField
+            margin="normal"
+            required
             fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Register
+            label="Confirm Password"
+            type="password"
+            id="confirmPassword"
+            {...register("confirmPassword", { required: "Please confirm your password", validate: value => value === password || "The passwords do not match" })}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message as string}
+          />
+          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+            Sign Up
           </Button>
-          <Typography variant="body2" align="center">
-            Already have an account?{' '}
-            <RouterLink to="/login" style={{ color: '#90caf9' }}>
-              Sign In
-            </RouterLink>
-          </Typography>
+          <Link component={RouterLink} to="/login" variant="body2">
+            {"Already have an account? Sign In"}
+          </Link>
         </Box>
-      </Paper>
+      </Box>
     </Container>
   );
 };

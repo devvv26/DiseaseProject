@@ -1,28 +1,47 @@
-import { Routes, Route } from 'react-router-dom'; // REMOVED BrowserRouter as Router
-import { ThemeProvider, CssBaseline, Container } from '@mui/material';
-import theme from './theme';
-import Header from './components/Header';
-import HomePage from './pages/HomePage';
-import AssessmentPage from './pages/AssessmentPage';
-import ResultPage from './pages/ResultPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { Toaster } from "react-hot-toast";
+
+import theme from "./theme";
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import AuthPage from "./pages/AuthPage";
+import AssessmentPage from "./pages/AssessmentPage";
+import DashboardPage from "./pages/DashboardPage";
+import TopicPage from "./pages/TopicPage";
+import ProfilePage from "./pages/ProfilePage";
+import ResultsPage from "./pages/ResultPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {/* The <Router> from main.tsx wraps everything, so we remove it from here */}
-      <Header />
-      <Container component="main" sx={{ mt: 4, mb: 4 }}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/assessment" element={<AssessmentPage />} />
-          <Route path="/results" element={<ResultPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Routes>
-      </Container>
+      <Router>
+        <Toaster position="top-center" reverseOrder={false} />
+        <Layout />
+        <main style={{ paddingTop: "80px" }}>
+          {/* The <Router> from main.tsx wraps everything, so we remove it from here */}
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/auth" element={<AuthPage />} /> {/* <-- NEW UNIFIED ROUTE */}
+            <Route path="/assessment" element={<AssessmentPage />} />
+            <Route path="/results" element={<ResultsPage />} />
+            <Route path="/about/:topicId" element={<TopicPage />} />
+
+            {/* REMOVE OLD ROUTES */}
+            {/* <Route path="/login" element={<LoginPage />} /> */}
+            {/* <Route path="/register" element={<RegisterPage />} /> */}
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+          </Routes>
+        </main>
+      </Router>
     </ThemeProvider>
   );
 }

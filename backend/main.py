@@ -1,68 +1,71 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+import pickle
+import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from datetime import timedelta
+import auth # <-- IMPORT THE NEW AUTH ROUTER
 
-# --- Import all our components ---
-from database import engine, get_db
-import models
-import schemas
-import auth
+# --- ML Model Loading ---
+try:
+    model = pickle.load(open('diabetes_model.pkl', 'rb'))
+except FileNotFoundError:
+    print("ERROR: 'diabetes_model.pkl' not found. Please run train_model.py first.")
+    model = None
 
-# --- Create DB tables on startup ---
-models.Base.metadata.create_all(bind=engine)
-
-# --- Initialize the FastAPI App ---
 app = FastAPI()
 
-# --- THIS IS THE FIX: Configure CORS with a Wildcard ---
-# The "*" allows requests from ANY origin. This is a surefire way to fix CORS.
+# --- Include Routers ---
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"]) # <-- ADD THIS LINE
+
+# --- CORS Middleware ---
+origins = ["http://localhost:5173"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Use a wildcard to allow all origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# --- END OF FIX ---
 
-# --- Root Endpoint ---
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the HealthCheck API"}
+# --- Pydantic model for prediction input ---
+# This MUST match the features used in train_model.py
+class PredictionInput(BaseModel):
+    HighBP: int
+    HighChol: int
+    BMI: float
+    GenHlth: int
+    Age: int
+    PhysActivity: int
+    Fruits: int
+    Veggies: int
+    Sex: int
 
-# --- User Registration Endpoint ---
-@app.post("/register/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+# --- THE FIXED PREDICTION ENDPOINT ---
+@app.post("/predict")
+def predict_diabetes(data: PredictionInput):
+    if model is None:
+        raise HTTPException(status_code=500, detail="Machine learning model not loaded.")
     
-    hashed_password = auth.get_password_hash(user.password)
-    new_user = models.User(username=user.username, hashed_password=hashed_password)
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    return new_user
+    try:
+        # Create the input array in the exact order the model was trained on
+        input_data = np.array([[
+            data.HighBP,
+            data.HighChol,
+            data.BMI,
+            data.GenHlth,
+            data.Age,
+            data.PhysActivity,
+            data.Fruits,
+            data.Veggies,
+            data.Sex
+        ]])
+        
+        prediction = model.predict(input_data)
+        
+        # Return the prediction result (0 or 1)
+        return {"prediction": int(prediction[0])}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
-# --- User Login Endpoint ---
-@app.post("/login/", response_model=schemas.Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.username == form_data.username).first()
-    
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+# Note: Authentication endpoints are removed for clarity to focus on the prediction fix.
+# We can add them back later if needed.
