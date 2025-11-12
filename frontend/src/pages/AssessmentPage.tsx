@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useEffect } from 'react';
+import { useState, type ChangeEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Stepper, Step, StepLabel, Button, Typography, Box, Container,
@@ -25,26 +25,13 @@ const AssessmentPage = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    // Fields for the model
-    HighBP: '',
-    HighChol: '',
-    BMI: '',
-    GenHlth: '3', // Default to 'Good'
-    Age: '',
-    PhysActivity: '',
-    Fruits: '',
-    Veggies: '',
-    Sex: '',
+    // Fields for the model (ensure these are initialized with default values if not filled by user)
+    HighBP: '', HighChol: '', BMI: '', GenHlth: '3', Age: '',
+    PhysActivity: '', Fruits: '', Veggies: '', Sex: '',
+    Stroke: '', HeartDiseaseorAttack: '', AnyHealthcare: '', NoDocbcCost: '',
+    MentHlth: '', PhysHlth: '', DiffWalk: '',
     // Helper fields for the form
-    height: '',
-    weight: '',
-    Stroke: '',
-    HeartDiseaseorAttack: '',
-    AnyHealthcare: '',
-    NoDocbcCost: '',
-    MentHlth: '',
-    PhysHlth: '',
-    DiffWalk: '',
+    height: '', weight: '',
   });
 
   useEffect(() => {
@@ -66,15 +53,50 @@ const AssessmentPage = () => {
     }));
   };
 
+  // --- THIS IS THE FIX: Update the payload type definition ---
+  const submitAssessment = async (payload: {
+    HighBP:number; HighChol:number; BMI:number; GenHlth:number; Age:number;
+    PhysActivity:number; Fruits:number; Veggies:number; Sex:number;
+    Stroke:number; HeartDiseaseorAttack:number; AnyHealthcare:number; NoDocbcCost:number;
+    MentHlth:number; PhysHlth:number; DiffWalk:number;
+  }) => {
+    try {
+      const res = await fetch("http://localhost:8000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>null);
+        throw new Error(err?.detail || "Prediction failed");
+      }
+      const data = await res.json();
+      // Navigate to the result page and pass prediction data
+      navigate('/result', {
+        state: {
+          result: {
+            prediction: data.prediction,
+            probability: data.probability,
+            factors: data.factors,
+          }
+        }
+      });
+    } catch (err) {
+      console.error("Error submitting assessment:", err);
+      // Propagate the error so handleNext can catch it and display the Alert
+      throw err; 
+    }
+  };
+
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
       setIsLoading(true);
       setError(null);
       
       try {
-        // *** THE FIX IS HERE ***
-        // 1. Create a payload with ONLY the fields the model needs.
-        // 2. Convert all values to numbers as expected by the backend.
+        // --- THIS IS THE UPDATED FIX ---
+        // Create a payload with ALL the fields collected by the form.
+        // Convert all values to numbers as expected by the backend.
         const payload = {
           HighBP: parseInt(formData.HighBP, 10),
           HighChol: parseInt(formData.HighChol, 10),
@@ -85,29 +107,24 @@ const AssessmentPage = () => {
           Fruits: parseInt(formData.Fruits, 10),
           Veggies: parseInt(formData.Veggies, 10),
           Sex: parseInt(formData.Sex, 10),
+          Stroke: parseInt(formData.Stroke, 10), 
+          HeartDiseaseorAttack: parseInt(formData.HeartDiseaseorAttack, 10), 
+          AnyHealthcare: parseInt(formData.AnyHealthcare, 10), 
+          NoDocbcCost: parseInt(formData.NoDocbcCost, 10), 
+          MentHlth: parseInt(formData.MentHlth, 10), 
+          PhysHlth: parseInt(formData.PhysHlth, 10), 
+          DiffWalk: parseInt(formData.DiffWalk, 10), 
         };
 
-        // Simple validation
+        // Simple validation for required fields
         for (const [key, value] of Object.entries(payload)) {
-          if (isNaN(value)) {
-            throw new Error(`Please answer all questions. The value for '${key}' is missing.`);
+          // Check for NaN or empty strings if any field is not filled
+          if (isNaN(value as number) || value === null || value === undefined) {
+            throw new Error(`Please answer all questions. The value for '${key}' is missing or invalid.`);
           }
         }
 
-        const response = await fetch('http://localhost:8000/predict', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        // Navigate to the results page with the prediction
-        navigate('/results', { state: { prediction: result.prediction } });
+        await submitAssessment(payload);
 
       } catch (error: any) {
         console.error('Error submitting assessment:', error);

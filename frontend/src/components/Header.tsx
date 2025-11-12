@@ -1,51 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Avatar } from '@mui/material';
-import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LogoutConfirmationDialog from './LogoutConfirmationDialog';
-import MegaMenu from './navigation/megaMenu';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // THIS IS THE FIX: Create a ref for the menu's trigger button.
-  const megaMenuTriggerRef = useRef<HTMLButtonElement>(null);
 
   const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
-  const [megaMenuAnchor, setMegaMenuAnchor] = useState<null | HTMLElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const menuCloseTimer = useRef<number>();
-
-  useEffect(() => {
-    setMegaMenuAnchor(null);
-  }, [location.pathname]);
-
-  const handleMegaMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    clearTimeout(menuCloseTimer.current);
-    setMegaMenuAnchor(event.currentTarget);
-  };
-
-  const handleMegaMenuClose = () => {
-    menuCloseTimer.current = window.setTimeout(() => {
-      setMegaMenuAnchor(null);
-    }, 300);
-  };
-
-  const handleMegaMenuEnter = () => {
-    clearTimeout(menuCloseTimer.current);
-  };
-
-  // THIS IS THE FIX: The navigation handler now correctly manages focus.
-  const handleMenuNavigation = (path: string) => {
-    // 1. Move focus back to the trigger button BEFORE closing the menu.
-    megaMenuTriggerRef.current?.focus();
-    // 2. Close the menu.
-    setMegaMenuAnchor(null);
-    // 3. Navigate to the new page.
-    navigate(path);
-  };
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setProfileMenuAnchor(event.currentTarget);
@@ -88,12 +52,9 @@ const Header: React.FC = () => {
               Risk Assessment
             </Button>
 
-            <Box onMouseLeave={handleMegaMenuClose}>
-              {/* THIS IS THE FIX: Attach the ref to the trigger button. */}
-              <Button ref={megaMenuTriggerRef} color="inherit" onMouseEnter={handleMegaMenuOpen} sx={{ fontWeight: 600 }}>
-                About Diabetes
-              </Button>
-            </Box>
+            <Button color="inherit" component={RouterLink} to="/about-diabetes" sx={{ fontWeight: 600 }}>
+              About Diabetes
+            </Button>
 
             <Button color="inherit" component={RouterLink} to="/about/diet-plan" sx={{ fontWeight: 600 }}>
               Food & Diet Plan
@@ -117,14 +78,6 @@ const Header: React.FC = () => {
           )}
         </Toolbar>
       </AppBar>
-      
-      <MegaMenu
-        open={Boolean(megaMenuAnchor)}
-        anchorEl={megaMenuAnchor}
-        onClose={handleMegaMenuClose}
-        onEnter={handleMegaMenuEnter}
-        onNavigate={handleMenuNavigation}
-      />
       
       <LogoutConfirmationDialog
         open={dialogOpen}
