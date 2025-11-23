@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'; // Ensure useState is imported
-import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom'; // Ensure RouterLink is imported
+import { useEffect, useState } from 'react'; // Ensure useState is imported
+import { useLocation, useNavigate } from 'react-router-dom'; // Ensure RouterLink is imported
 import {
   Box, Container, Typography, Button, Paper, List, ListItem, ListItemIcon, ListItemText,
-  CircularProgress, circularProgressClasses, type CircularProgressProps, Alert, Modal, Grid // Ensure Modal and Grid are imported
+  CircularProgress, circularProgressClasses, type CircularProgressProps, Modal, Grid // Ensure Modal and Grid are imported
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';

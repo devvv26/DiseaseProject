@@ -26,7 +26,7 @@ const AssessmentPage = () => {
 
   const [formData, setFormData] = useState({
     // Fields for the model (ensure these are initialized with default values if not filled by user)
-    HighBP: '', HighChol: '', BMI: '', GenHlth: '3', Age: '',
+    HighBP: '', HighChol: '', BMI: '', GenHlth: '', Age: '',
     PhysActivity: '', Fruits: '', Veggies: '', Sex: '',
     Stroke: '', HeartDiseaseorAttack: '', AnyHealthcare: '', NoDocbcCost: '',
     MentHlth: '', PhysHlth: '', DiffWalk: '',
